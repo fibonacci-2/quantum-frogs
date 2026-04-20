@@ -19,3 +19,61 @@ hopefully reveal strcuture about optimal solution and insight to make the
 game design better. For example, how difficulty scales as we add more cars. How 
 do players' actions affect each other.
 
+## Plan
+
+### 1. Game Environment (Gymnasium API)
+
+The environment follows the [Gymnasium](https://gymnasium.farama.org/) interface (`reset()`, `step(action)`, `render()`).
+
+**State Representation — Multi-channel 8×8 grid:**
+
+| Channel | Contents | Values |
+|---------|----------|--------|
+| 0 | Frog positions | 1 = frog A, 2 = frog B, 0 = empty |
+| 1 | Car positions | 1 = car present, 0 = empty |
+| 2 | Car velocities | signed int: +v = right, −v = left |
+
+State shape: `(3, 8, 8)` — compatible with both tabular flattening and conv-net input.
+
+**Action Space:**
+
+Each frog chooses from `{up, down, left, right, stay}` → 5 actions per frog.
+- Single-frog mode: `Discrete(5)`
+- Two-frog joint mode: `Discrete(25)` or `MultiDiscrete([5, 5])`
+
+**Time Rule:** The environment advances cars by one tick only when `step()` is called (i.e., when a frog acts). Time is frozen between steps.
+
+**Reward Signal:**
+
+| Event | Reward |
+|-------|--------|
+| Frog reaches top row | +100 |
+| Both frogs reach top row | +200 (bonus) |
+| Frog hit by car | −100, episode ends |
+| Each step taken | −1 (encourages efficiency) |
+| Frog moves up one row | +1 (progress shaping) |
+
+**Done Condition:** Both frogs reach the top row (success), or any frog is hit (failure).
+
+### 2. Training — Escalating Difficulty
+
+Training proceeds in stages, each adding complexity:
+
+| Stage | Frogs | Cars | Speed | Algorithm | Goal |
+|-------|-------|------|-------|-----------|------|
+| 1 | 1 | 1 | 1 sq/step | Tabular Q-Learning | Learn RL basics, validate env |
+| 2 | 1 | 2–3 | 1 sq/step | Tabular Q-Learning | Handle multiple obstacles |
+| 3 | 1 | 3–4 | mixed (1–2) | DQN | Generalize over more complex traffic |
+| 4 | 2 | 2 | 1 sq/step | Independent Q / DQN | Introduce multi-agent, no cooperation |
+| 5 | 2 | 3–4 | mixed | MAPPO / QMIX | Cooperative multi-agent |
+| 6 | 2 | 6+ | mixed | MAPPO / QMIX | Stress test, difficulty analysis |
+
+Each stage trains until convergence (plateau in rolling avg reward) before moving on.
+
+### 3. Evaluation & Analysis
+
+- **Success rate vs. car count:** For each stage, plot % of episodes where all frogs survive over N eval episodes (no exploration).
+- **Average episode length:** Measures efficiency of learned policy.
+- **Cooperation gap:** Compare Stage 5 (cooperative) vs. Stage 4 (independent) to quantify the value of communication.
+- **Policy visualization:** For key board states, render a heatmap of chosen actions to reveal strategic structure.
+- **Difficulty curve:** Fit success rate as a function of car count to characterize how difficulty scales.
