@@ -25,7 +25,7 @@
   /* ── Column headers ── */
   .grid {
     display: grid;
-    grid-template-columns: 160px repeat(4, 1fr);
+    grid-template-columns: 160px repeat(5, 1fr);
     gap: 0;
     border-radius: 18px;
     overflow: hidden;
@@ -124,6 +124,9 @@
   .dqn-col  { border-top: 4px solid #e94560; }
   .idqn-col { border-top: 4px solid #f77f00; }
   .mappo-col{ border-top: 4px solid #2ec4b6; }
+  .qmix-col { border-top: 4px solid #7c3aed; }
+  .eq.violet { background: #f5f0ff; color: #4c1d95; }
+  .tag-violet { background:#ede9fe; color:#5b21b6; }
 
   .bold { font-weight: 700; color: #111; }
   .dim  { color: #888; font-size: 0.78rem; }
@@ -159,6 +162,11 @@
     <div class="name">MAPPO</div>
     <div class="full">Multi-Agent PPO<br>Centralised Critic</div>
   </div>
+  <div class="algo-header qmix-col" style="background:#3b1a78;">
+    <div class="stage">Stage 5 – 6</div>
+    <div class="name">QMIX</div>
+    <div class="full">Monotonic Value<br>Decomposition</div>
+  </div>
 
   <!-- ══ ROW 1: type ══════════════════════════════════════════════════════ -->
   <div class="cell-label">Type</div>
@@ -184,6 +192,12 @@
     <span class="tag tag-gray">Actor-Critic</span>
     <span class="tag tag-teal">CTDE</span>
   </div>
+  <div class="cell">
+    <span class="tag tag-violet">Off-policy</span>
+    <span class="tag tag-gray">Neural</span>
+    <span class="tag tag-gray">Value-based</span>
+    <span class="tag tag-violet">CTDE</span>
+  </div>
 
   <!-- ══ ROW 2: what it stores ════════════════════════════════════════════ -->
   <div class="cell-label">What it stores</div>
@@ -203,6 +217,11 @@
   <div class="cell shaded row-stripe">
     <span class="bold">Two actor nets</span> (one per frog) + <span class="bold">one shared critic</span>.
     <br><span class="bold">Rollout buffer</span> — on-policy trajectories from 32 envs × 128 steps = 4 096 transitions, discarded after each update.
+  </div>
+  <div class="cell row-stripe">
+    <span class="bold">Two agent Q-nets</span> QA(s, aA) and QB(s, aB).
+    <br><span class="bold">Mixing network</span> — a small hypernetwork conditioned on global state that combines Q values into Q_tot.
+    <br><span class="bold">Replay buffer</span> — shared, 100 k joint transitions.
   </div>
 
   <!-- ══ ROW 3: how it picks actions ══════════════════════════════════════ -->
@@ -227,6 +246,12 @@ aB = argmax QB(s)    ← frog B's net</div>
     <span class="bold">Stochastic sampling</span> from the actor's categorical distribution. No ε needed — entropy bonus keeps exploration alive.
     <div class="eq teal">aA ~ Categorical(πA(s))
 aB ~ Categorical(πB(s))</div>
+  </div>
+  <div class="cell">
+    <span class="bold">ε-greedy on individual Q-nets.</span> The IGM property guarantees the joint greedy action equals picking greedily per agent independently.
+    <div class="eq violet">aA = argmax QA(s, ·)
+aB = argmax QB(s, ·)
+→ same as argmax Q_tot(s, ·)</div>
   </div>
 
   <!-- ══ ROW 4: update rule ════════════════════════════════════════════════ -->
@@ -263,6 +288,16 @@ L_entropy = H[πA] + H[πB]
 loss = L_actor + 0.5·L_critic − 0.01·L_entropy</div>
     <span class="dim">clip ε=0.2, λ=0.95, 4 epochs, batch=512</span>
   </div>
+  <div class="cell row-stripe">
+    Sample joint transitions from replay. Mixing net weights are output by a hypernetwork (non-negative → monotonic). TD loss on Q_tot.
+    <div class="eq violet">Q_tot = MixNet(QA, QB, s)
+  where ∂Q_tot/∂QA ≥ 0
+        ∂Q_tot/∂QB ≥ 0   ← key constraint
+
+target = r_team + γ · max Q_tot_tgt(s′)
+loss   = MSE(Q_tot,  target)</div>
+    <span class="dim">Monotonicity enforced by absolute-value activation on mixing weights</span>
+  </div>
 
   <!-- ══ ROW 5: reward ═════════════════════════════════════════════════════ -->
   <div class="cell-label">Reward signal</div>
@@ -281,6 +316,10 @@ loss = L_actor + 0.5·L_critic − 0.01·L_entropy</div>
     <span class="bold">Team reward: rA + rB</span>, shared equally. Both actors receive the same scalar and learn to maximise the joint outcome.
     <div class="dim" style="margin-top:6px">This is what drives cooperative behaviour — not explicit messaging.</div>
   </div>
+  <div class="cell">
+    <span class="bold">Team reward: rA + rB</span>, used to train Q_tot. Individual Q-nets learn utility functions whose sum is consistent with the joint optimal.
+    <div class="dim" style="margin-top:6px">Same team signal as MAPPO, but routed through value decomposition instead of a policy gradient.</div>
+  </div>
 
   <!-- ══ ROW 6: key mechanism ══════════════════════════════════════════════ -->
   <div class="cell-label">Key mechanism</div>
@@ -296,6 +335,10 @@ loss = L_actor + 0.5·L_critic − 0.01·L_entropy</div>
   </div>
   <div class="cell shaded row-stripe">
     <span class="bold">Centralised Training, Decentralised Execution (CTDE).</span> The critic sees global state during training and teaches actors how joint actions affect joint returns. At test time, each actor acts alone using only its own obs.
+  </div>
+  <div class="cell row-stripe">
+    <span class="bold">IGM principle + monotonic mixing.</span> The mixing network's non-negative weights guarantee that agents acting greedily on their own Q-net always produce the joint-optimal action — no coordination needed at execution time.
+    <div class="dim" style="margin-top:4px">Difference from MAPPO: QMIX stays value-based and off-policy; MAPPO is policy-gradient and on-policy.</div>
   </div>
 
   <!-- ══ ROW 7: generalisation ═════════════════════════════════════════════ -->
@@ -313,6 +356,9 @@ loss = L_actor + 0.5·L_critic − 0.01·L_entropy</div>
   <div class="cell shaded">
     <span class="bold">Yes.</span> Trained on 4 cars, evaluated on 1–6. Actors generalise cleanly because the critic's value signal is stable.
   </div>
+  <div class="cell">
+    <span class="bold">Yes.</span> Both agent Q-nets and the mixing net are neural, so they interpolate across unseen configurations. Replay buffer further improves sample coverage.
+  </div>
 
   <!-- ══ ROW 8: convergence ════════════════════════════════════════════════ -->
   <div class="cell-label">Convergence</div>
@@ -328,6 +374,9 @@ loss = L_actor + 0.5·L_critic − 0.01·L_entropy</div>
   </div>
   <div class="cell shaded row-stripe">
     <span class="bold">No guarantee</span> for global optimum, but PPO's clipping keeps updates small. Observed: all 4 seeds converged to identical policies — far more stable than IDQN.
+  </div>
+  <div class="cell row-stripe">
+    <span class="bold">No guarantee</span> in general, but the IGM constraint gives a stronger theoretical basis than IDQN. Monotonicity ensures the decomposition is internally consistent even if Q_tot doesn't reach the global optimum.
   </div>
 
 </div>
