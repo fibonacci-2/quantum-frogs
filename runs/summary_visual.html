@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quantum Frog — What the Agents Learned</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    padding: 40px 32px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .header { margin-bottom: 36px; }
+  .header h1 {
+    font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;
+    color: #1a1a2e;
+  }
+  .header h1 span { color: #2ec4b6; }
+  .header p { color: #555; margin-top: 6px; font-size: 1rem; }
+
+  /* ── Stat pills ── */
+  .pills {
+    display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap;
+  }
+  .pill {
+    background: white;
+    border-radius: 14px;
+    padding: 18px 28px;
+    flex: 1; min-width: 180px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.07);
+    border-top: 4px solid var(--c);
+  }
+  .pill .num {
+    font-size: 2.4rem; font-weight: 800; color: var(--c);
+    line-height: 1;
+  }
+  .pill .label { font-size: 0.78rem; color: #777; margin-top: 5px; text-transform: uppercase; letter-spacing: .05em; }
+  .pill .desc  { font-size: 0.88rem; color: #333; margin-top: 4px; font-weight: 500; }
+
+  /* ── Cards ── */
+  .card {
+    background: white; border-radius: 16px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.07);
+    padding: 24px 24px 16px;
+    margin-bottom: 24px;
+  }
+  .card h2 {
+    font-size: 1rem; font-weight: 700; color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+  .card .sub { font-size: 0.82rem; color: #888; margin-bottom: 14px; }
+
+  .row { display: flex; gap: 24px; margin-bottom: 24px; }
+  .row .card { flex: 1; margin-bottom: 0; }
+
+  /* ── Takeaways ── */
+  .takeaways {
+    display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap;
+  }
+  .takeaway {
+    flex: 1; min-width: 220px;
+    background: white; border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.07);
+    border-left: 4px solid var(--c);
+  }
+  .takeaway .icon { font-size: 1.5rem; margin-bottom: 8px; }
+  .takeaway h3 { font-size: 0.9rem; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+  .takeaway p  { font-size: 0.82rem; color: #555; line-height: 1.5; }
+
+  .plot { width: 100%; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>🐸 Quantum Frog — <span>What the Agents Learned</span></h1>
+  <p>Five training stages · Tabular Q-Learning → DQN → Independent DQN → MAPPO · Key findings across all runs</p>
+</div>
+
+<!-- Stat pills -->
+<div class="pills">
+  <div class="pill" style="--c:#4361ee">
+    <div class="num">6–7</div>
+    <div class="label">optimal steps</div>
+    <div class="desc">Every algorithm that converged found the same "rush straight up" strategy</div>
+  </div>
+  <div class="pill" style="--c:#e94560">
+    <div class="num">74</div>
+    <div class="label">IDQN avg steps</div>
+    <div class="desc">Without coordination, agents wander — 12× longer than optimal</div>
+  </div>
+  <div class="pill" style="--c:#2ec4b6">
+    <div class="num">+34 pp</div>
+    <div class="label">cooperation gain</div>
+    <div class="desc">MAPPO vs IDQN both-win rate at 2 cars — cooperation is worth more than halving car count</div>
+  </div>
+  <div class="pill" style="--c:#f77f00">
+    <div class="num">7×</div>
+    <div class="label">IDQN seed spread</div>
+    <div class="desc">Best seed: 79% · Worst seed: 10.5% — independent learning is deeply unstable</div>
+  </div>
+</div>
+
+<!-- Chart 1: Difficulty curves -->
+<div class="card">
+  <h2>Win Rate vs Traffic Density</h2>
+  <div class="sub">Greedy policy, 200 evaluation episodes per car count · "Both win" for 2-frog stages · shaded band = best/worst seed across 4 runs</div>
+  <div id="difficulty" class="plot"></div>
+</div>
+
+<!-- Row: episode length + seed stability -->
+<div class="row">
+  <div class="card">
+    <h2>Episode Length at 2 Cars</h2>
+    <div class="sub">Avg steps per episode — shorter is better</div>
+    <div id="steps" class="plot"></div>
+  </div>
+  <div class="card">
+    <h2>Training Stability (1 car, both-win %)</h2>
+    <div class="sub">Each dot = one seed (4 seeds per algorithm)</div>
+    <div id="stability" class="plot"></div>
+  </div>
+</div>
+
+<!-- Takeaways -->
+<div class="takeaways">
+  <div class="takeaway" style="--c:#4361ee">
+    <div class="icon">⏱️</div>
+    <h3>Quantized time rewards decisive play</h3>
+    <p>Cars only move when you do. Every agent that learned to win did so by rushing straight up in ~7 steps. Hesitation is a self-inflicted penalty.</p>
+  </div>
+  <div class="takeaway" style="--c:#e94560">
+    <div class="icon">🤷</div>
+    <h3>Two players without communication is harder than six cars alone</h3>
+    <p>IDQN at 1 car (43%) loses to DQN at 6 cars (59%). A second frog multiplies difficulty unless both players coordinate.</p>
+  </div>
+  <div class="takeaway" style="--c:#2ec4b6">
+    <div class="icon">🤝</div>
+    <h3>Cooperation = discovering the same simple plan</h3>
+    <p>MAPPO didn't learn complex tactics. It learned that both frogs should rush simultaneously — eliminating the non-stationarity that prevented independent agents from converging.</p>
+  </div>
+  <div class="takeaway" style="--c:#f77f00">
+    <div class="icon">🎯</div>
+    <h3>Optimal difficulty window: 2–4 cars co-op</h3>
+    <p>Below 2 cars even uncoordinated players can get lucky. Above 5 cars even perfect coordination struggles. The 2–4 range is where coordination skill actually determines outcome.</p>
+  </div>
+</div>
+
+<script>
+const cars = [1, 2, 3, 4, 5, 6];
+
+// Data
+const dqn   = [95.2, 84.6, 79.8, 69.0, 60.8, 58.8];
+const idqnMean = [43.0, 24.4, 16.6, 11.8, 6.0, 6.2];
+const idqnMax  = [79.0, 49.5, 36.5, 25.0, 12.0, 13.5];
+const idqnMin  = [10.5,  8.5,  4.0,  2.5,  1.5,  1.0];
+const mappo  = [75.0, 58.5, 41.5, 27.0, 29.0, 17.0];
+
+const C_DQN   = '#4361ee';
+const C_IDQN  = '#e94560';
+const C_MAPPO = '#2ec4b6';
+
+// ── Chart 1: Difficulty curves ──────────────────────────────────────────
+const idqnBand = {
+  x: [...cars, ...cars.slice().reverse()],
+  y: [...idqnMax, ...idqnMin.slice().reverse()],
+  fill: 'toself',
+  fillcolor: 'rgba(233,69,96,0.12)',
+  line: {color: 'transparent'},
+  showlegend: true,
+  name: 'IDQN seed range',
+  type: 'scatter',
+  hoverinfo: 'skip',
+};
+
+const mAppoBand = {
+  x: [...cars, ...cars.slice().reverse()],
+  y: [...mappo, ...mappo.slice().reverse()],
+  fill: 'toself',
+  fillcolor: 'rgba(46,196,182,0.10)',
+  line: {color: 'transparent'},
+  showlegend: false,
+  name: 'MAPPO (all seeds identical)',
+  type: 'scatter',
+  hoverinfo: 'skip',
+};
+
+const traceDQN = {
+  x: cars, y: dqn, type: 'scatter', mode: 'lines+markers',
+  name: 'DQN — 1 frog', line: {color: C_DQN, width: 2.5},
+  marker: {size: 9, color: C_DQN},
+};
+const traceIDQN = {
+  x: cars, y: idqnMean, type: 'scatter', mode: 'lines+markers',
+  name: 'IDQN — 2 frogs, no comm', line: {color: C_IDQN, width: 2.5},
+  marker: {size: 9, color: C_IDQN},
+};
+const traceMAPPO = {
+  x: cars, y: mappo, type: 'scatter', mode: 'lines+markers',
+  name: 'MAPPO — 2 frogs, cooperative', line: {color: C_MAPPO, width: 2.5},
+  marker: {size: 9, color: C_MAPPO},
+};
+
+Plotly.newPlot('difficulty',
+  [idqnBand, mAppoBand, traceDQN, traceIDQN, traceMAPPO],
+  {
+    height: 380,
+    margin: {t: 10, r: 20, b: 50, l: 50},
+    xaxis: {title: 'Number of Cars', dtick: 1, gridcolor: '#eee'},
+    yaxis: {title: 'Win Rate %', range: [0, 102], gridcolor: '#eee'},
+    legend: {orientation: 'h', y: -0.18, x: 0.5, xanchor: 'center'},
+    plot_bgcolor: 'white', paper_bgcolor: 'white',
+    annotations: [
+      {x: 1.4, y: 96, text: 'DQN', showarrow: false, font: {color: C_DQN, size: 11}},
+      {x: 1.2, y: 78, text: 'MAPPO', showarrow: false, font: {color: C_MAPPO, size: 11}},
+      {x: 2.2, y: 18, text: 'IDQN', showarrow: false, font: {color: C_IDQN, size: 11}},
+    ],
+  },
+  {responsive: true, displayModeBar: false}
+);
+
+// ── Chart 2: Episode length ──────────────────────────────────────────────
+Plotly.newPlot('steps',
+  [{
+    x: [74.2, 6.8, 5.3],
+    y: ['IDQN<br>(2 frogs, no comm)', 'DQN<br>(1 frog)', 'MAPPO<br>(2 frogs, comm)'],
+    type: 'bar', orientation: 'h',
+    marker: {color: [C_IDQN, C_DQN, C_MAPPO]},
+    text: ['74.2 steps', '6.8 steps', '5.3 steps'],
+    textposition: 'outside',
+    cliponaxis: false,
+  }],
+  {
+    height: 260,
+    margin: {t: 10, r: 80, b: 40, l: 140},
+    xaxis: {title: 'Avg steps per episode', range: [0, 95], gridcolor: '#eee'},
+    yaxis: {autorange: 'reversed'},
+    plot_bgcolor: 'white', paper_bgcolor: 'white',
+    annotations: [{
+      x: 74.2, y: 'IDQN<br>(2 frogs, no comm)',
+      xanchor: 'left', yanchor: 'middle',
+      ax: 0, ay: 0, text: '12× longer than optimal',
+      font: {color: C_IDQN, size: 10}, showarrow: false, xshift: 8,
+    }],
+  },
+  {responsive: true, displayModeBar: false}
+);
+
+// ── Chart 3: Seed stability ──────────────────────────────────────────────
+const idqnSeeds  = [29.5, 53.0, 10.5, 79.0];
+const mappoSeeds = [75.0, 75.0, 75.0, 75.0];
+
+Plotly.newPlot('stability',
+  [
+    {
+      x: ['IDQN','IDQN','IDQN','IDQN'],
+      y: idqnSeeds,
+      type: 'box',
+      name: 'IDQN',
+      marker: {color: C_IDQN, size: 10},
+      boxpoints: 'all', jitter: 0.3, pointpos: 0,
+      line: {color: C_IDQN},
+      fillcolor: 'rgba(233,69,96,0.1)',
+    },
+    {
+      x: ['MAPPO','MAPPO','MAPPO','MAPPO'],
+      y: mappoSeeds,
+      type: 'box',
+      name: 'MAPPO',
+      marker: {color: C_MAPPO, size: 10},
+      boxpoints: 'all', jitter: 0.3, pointpos: 0,
+      line: {color: C_MAPPO},
+      fillcolor: 'rgba(46,196,182,0.1)',
+    },
+  ],
+  {
+    height: 260,
+    margin: {t: 10, r: 20, b: 40, l: 55},
+    yaxis: {title: 'Both-win % at 1 car', range: [0, 100], gridcolor: '#eee'},
+    xaxis: {gridcolor: '#eee'},
+    showlegend: false,
+    plot_bgcolor: 'white', paper_bgcolor: 'white',
+    annotations: [
+      {x: 0, y: 79.0, text: '79%', showarrow: false, xshift: 28, font: {color: C_IDQN, size: 10}},
+      {x: 0, y: 10.5, text: '10.5%', showarrow: false, xshift: 30, font: {color: C_IDQN, size: 10}},
+      {x: 1, y: 75.0, text: '75% (all seeds)', showarrow: false, xshift: 58, font: {color: C_MAPPO, size: 10}},
+    ],
+  },
+  {responsive: true, displayModeBar: false}
+);
+</script>
+</body>
+</html>
