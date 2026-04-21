@@ -14,10 +14,13 @@ class QuantumFrogEnv(gym.Env):
     ACTION_NAMES = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT", 4: "STAY"}
     KEY_MAP = {"w": 0, "s": 1, "a": 2, "d": 3, " ": 4}
 
-    def __init__(self, render_mode=None, num_cars=2, grid_size=8):
+    def __init__(self, render_mode=None, num_cars=2, grid_size=8, car_speeds=(1,)):
         super().__init__()
         self.grid_size = grid_size
         self.num_cars = num_cars
+        self.car_speeds = tuple(int(abs(v)) for v in car_speeds if int(abs(v)) >= 1)
+        if not self.car_speeds:
+            self.car_speeds = (1,)
         self.render_mode = render_mode
 
         self.observation_space = spaces.Box(
@@ -37,7 +40,9 @@ class QuantumFrogEnv(gym.Env):
         )
         for row in car_rows:
             col = int(self.np_random.integers(0, self.grid_size))
-            vel = int(self.np_random.choice([-1, 1]))
+            speed = int(self.np_random.choice(self.car_speeds))
+            direction = int(self.np_random.choice([-1, 1]))
+            vel = speed * direction
             self.cars.append({"row": int(row), "col": col, "vel": vel})
         return self._get_obs(), self._get_info()
 
@@ -129,5 +134,5 @@ class QuantumFrogEnv(gym.Env):
 
 
 if __name__ == "__main__":
-    env = QuantumFrogEnv(render_mode="ansi", num_cars=5, grid_size=16)
+    env = QuantumFrogEnv(render_mode="ansi", num_cars=5, grid_size=8, car_speeds=(1, 2))
     env.play()

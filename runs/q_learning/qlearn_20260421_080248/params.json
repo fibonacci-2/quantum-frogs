@@ -1,0 +1,30 @@
+{
+  "run_id": "qlearn_20260421_080248",
+  "timestamp": "2026-04-21T08:02:48.784292",
+  "algorithm": "Tabular Q-Learning",
+  "num_episodes": 20000,
+  "train_cars": 2,
+  "grid_size": 8,
+  "alpha": 0.1,
+  "gamma": 0.99,
+  "epsilon_start": 1.0,
+  "epsilon_min": 0.01,
+  "epsilon_decay": 0.9995,
+  "max_steps_per_ep": 200,
+  "eval_car_counts": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "eval_episodes": 200,
+  "key_episodes": [
+    1,
+    10000,
+    20000
+  ],
+  "train_time_sec": 6.5,
+  "q_table_states": 57722
+}

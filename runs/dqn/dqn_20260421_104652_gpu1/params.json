@@ -1,0 +1,33 @@
+{
+  "run_id": "dqn_20260421_104652_gpu1",
+  "timestamp": "2026-04-21T10:46:52.134644",
+  "algorithm": "DQN",
+  "stage": 3,
+  "total_timesteps": 150000,
+  "train_cars": 4,
+  "car_speeds": [
+    1,
+    2
+  ],
+  "seed": 101,
+  "device": "cuda",
+  "gpu_id": 1,
+  "grid_size": 8,
+  "policy": "MlpPolicy (flattened observation)",
+  "eval_car_counts": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "eval_episodes": 200,
+  "key_episodes": [
+    1,
+    500,
+    1000
+  ],
+  "train_time_sec": 207.4,
+  "episodes_recorded": 14852
+}

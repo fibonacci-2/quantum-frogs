@@ -1,0 +1,107 @@
+{
+  "1": {
+    "learned_counts": [
+      4,
+      0,
+      0,
+      1,
+      0
+    ],
+    "learned_probs": [
+      0.8,
+      0.0,
+      0.0,
+      0.2,
+      0.0
+    ],
+    "learned_steps": 5,
+    "learned_win": false,
+    "random_counts": [
+      1,
+      1,
+      0,
+      0,
+      0
+    ],
+    "random_probs": [
+      0.5,
+      0.5,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "random_steps": 2,
+    "random_win": false,
+    "l1_distance": 1.0
+  },
+  "500": {
+    "learned_counts": [
+      7,
+      1,
+      0,
+      0,
+      0
+    ],
+    "learned_probs": [
+      0.875,
+      0.125,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "learned_steps": 8,
+    "learned_win": true,
+    "random_counts": [
+      7,
+      12,
+      8,
+      6,
+      3
+    ],
+    "random_probs": [
+      0.19444444444444445,
+      0.3333333333333333,
+      0.2222222222222222,
+      0.16666666666666666,
+      0.08333333333333333
+    ],
+    "random_steps": 36,
+    "random_win": false,
+    "l1_distance": 1.3611111111111112
+  },
+  "1000": {
+    "learned_counts": [
+      7,
+      0,
+      0,
+      0,
+      0
+    ],
+    "learned_probs": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "learned_steps": 7,
+    "learned_win": true,
+    "random_counts": [
+      3,
+      9,
+      4,
+      5,
+      8
+    ],
+    "random_probs": [
+      0.10344827586206896,
+      0.3103448275862069,
+      0.13793103448275862,
+      0.1724137931034483,
+      0.27586206896551724
+    ],
+    "random_steps": 29,
+    "random_win": false,
+    "l1_distance": 1.793103448275862
+  }
+}

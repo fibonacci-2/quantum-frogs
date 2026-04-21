@@ -1,0 +1,30 @@
+{
+  "run_id": "dqn_debug_20260421_085504",
+  "timestamp": "2026-04-21T08:55:04.629122",
+  "algorithm": "DQN",
+  "stage": 3,
+  "total_timesteps": 30000,
+  "train_cars": 4,
+  "car_speeds": [
+    1,
+    2
+  ],
+  "grid_size": 8,
+  "policy": "MlpPolicy (flattened observation)",
+  "eval_car_counts": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "eval_episodes": 100,
+  "key_episodes": [
+    1,
+    500,
+    1000
+  ],
+  "train_time_sec": 342.1,
+  "episodes_recorded": 2381
+}
