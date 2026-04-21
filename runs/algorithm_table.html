@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quantum Frog — Algorithm Breakdown</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    padding: 44px 36px 72px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 1.75rem; font-weight: 800;
+    letter-spacing: -0.4px; margin-bottom: 6px;
+  }
+  h1 span { color: #2ec4b6; }
+  .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 36px; }
+
+  /* ── Column headers ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 160px repeat(4, 1fr);
+    gap: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,.10);
+  }
+
+  /* label column */
+  .cell-label {
+    background: #1a1a2e;
+    color: #aab;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+  }
+  .cell-label.first {
+    border-bottom: none;
+    background: #0f1626;
+    color: #fff;
+    font-size: 0.75rem;
+    letter-spacing: .05em;
+  }
+
+  /* algo header cells */
+  .algo-header {
+    padding: 22px 20px 18px;
+    color: white;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+  }
+  .algo-header .stage {
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .08em; opacity: .75; margin-bottom: 4px;
+  }
+  .algo-header .name {
+    font-size: 1.15rem; font-weight: 800; letter-spacing: -.3px;
+    margin-bottom: 4px;
+  }
+  .algo-header .full {
+    font-size: 0.72rem; opacity: .7; line-height: 1.4;
+  }
+
+  /* data cells */
+  .cell {
+    background: white;
+    padding: 14px 18px;
+    font-size: 0.85rem;
+    color: #333;
+    line-height: 1.55;
+    border-right: 1px solid #eff0f3;
+    border-bottom: 1px solid #eff0f3;
+    vertical-align: top;
+  }
+  .cell:last-child { border-right: none; }
+  .cell.shaded { background: #f9fafb; }
+
+  /* row stripe */
+  .row-stripe .cell { background: #f5f7fa; }
+  .row-stripe .cell.shaded { background: #f0f2f7; }
+
+  /* code blocks */
+  .eq {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.75rem;
+    background: #f0f4ff;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-top: 6px;
+    color: #2a3f8f;
+    line-height: 1.7;
+    white-space: pre;
+  }
+  .eq.red   { background: #fff0f2; color: #8f2a3f; }
+  .eq.teal  { background: #f0fdfb; color: #1a6b5f; }
+  .eq.amber { background: #fff8f0; color: #8f5a2a; }
+
+  /* tags */
+  .tag {
+    display: inline-block;
+    font-size: 0.68rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 99px;
+    margin: 2px 2px 0 0;
+    text-transform: uppercase; letter-spacing: .05em;
+  }
+  .tag-blue  { background:#e8ecff; color:#4361ee; }
+  .tag-red   { background:#fde8ec; color:#c0344d; }
+  .tag-teal  { background:#e0faf6; color:#1d8c7e; }
+  .tag-amber { background:#fff0e0; color:#c07020; }
+  .tag-gray  { background:#ebebeb; color:#555; }
+
+  /* highlight accent bar at top of algo col */
+  .ql-col   { border-top: 4px solid #4361ee; }
+  .dqn-col  { border-top: 4px solid #e94560; }
+  .idqn-col { border-top: 4px solid #f77f00; }
+  .mappo-col{ border-top: 4px solid #2ec4b6; }
+
+  .bold { font-weight: 700; color: #111; }
+  .dim  { color: #888; font-size: 0.78rem; }
+</style>
+</head>
+<body>
+
+<h1>🐸 Quantum Frog — <span>Algorithm Breakdown</span></h1>
+<p class="subtitle">How each training stage works, from lookup table to cooperative neural agents</p>
+
+<div class="grid">
+
+  <!-- ══ ROW 0: headers ══════════════════════════════════════════════════ -->
+  <div class="cell-label first">Algorithm</div>
+
+  <div class="algo-header ql-col"   style="background:#2a3580;">
+    <div class="stage">Stage 1 – 2</div>
+    <div class="name">Q-Learning</div>
+    <div class="full">Tabular Q-Learning</div>
+  </div>
+  <div class="algo-header dqn-col"  style="background:#8f1a2f;">
+    <div class="stage">Stage 3</div>
+    <div class="name">DQN</div>
+    <div class="full">Deep Q-Network</div>
+  </div>
+  <div class="algo-header idqn-col" style="background:#7a3c00;">
+    <div class="stage">Stage 4</div>
+    <div class="name">IDQN</div>
+    <div class="full">Independent DQN</div>
+  </div>
+  <div class="algo-header mappo-col" style="background:#0e5c52;">
+    <div class="stage">Stage 5</div>
+    <div class="name">MAPPO</div>
+    <div class="full">Multi-Agent PPO<br>Centralised Critic</div>
+  </div>
+
+  <!-- ══ ROW 1: type ══════════════════════════════════════════════════════ -->
+  <div class="cell-label">Type</div>
+
+  <div class="cell">
+    <span class="tag tag-blue">Off-policy</span>
+    <span class="tag tag-gray">Tabular</span>
+    <span class="tag tag-gray">Value-based</span>
+  </div>
+  <div class="cell shaded">
+    <span class="tag tag-red">Off-policy</span>
+    <span class="tag tag-gray">Neural</span>
+    <span class="tag tag-gray">Value-based</span>
+  </div>
+  <div class="cell">
+    <span class="tag tag-amber">Off-policy</span>
+    <span class="tag tag-gray">Neural</span>
+    <span class="tag tag-gray">Multi-agent</span>
+  </div>
+  <div class="cell shaded">
+    <span class="tag tag-teal">On-policy</span>
+    <span class="tag tag-gray">Neural</span>
+    <span class="tag tag-gray">Actor-Critic</span>
+    <span class="tag tag-teal">CTDE</span>
+  </div>
+
+  <!-- ══ ROW 2: what it stores ════════════════════════════════════════════ -->
+  <div class="cell-label">What it stores</div>
+
+  <div class="cell row-stripe">
+    <span class="bold">Q-table</span> — a dictionary mapping every observed state (raw bytes of the obs array) to a vector of 5 action values.
+    <br><span class="dim">Grows with unique states visited. Works only because Stage 1–2 has a small, discrete state space.</span>
+  </div>
+  <div class="cell shaded row-stripe">
+    <span class="bold">Two networks</span> — online Q-net + target Q-net (both MLP 192→256→256→5).
+    <br><span class="bold">Replay buffer</span> — ring buffer of 100 k transitions (s, a, r, s′, done).
+  </div>
+  <div class="cell row-stripe">
+    <span class="bold">Two independent DQN agents</span>, each with its own online net, target net, and replay buffer (100 k each).
+    <br><span class="dim">No shared memory between agents.</span>
+  </div>
+  <div class="cell shaded row-stripe">
+    <span class="bold">Two actor nets</span> (one per frog) + <span class="bold">one shared critic</span>.
+    <br><span class="bold">Rollout buffer</span> — on-policy trajectories from 32 envs × 128 steps = 4 096 transitions, discarded after each update.
+  </div>
+
+  <!-- ══ ROW 3: how it picks actions ══════════════════════════════════════ -->
+  <div class="cell-label">Action selection</div>
+
+  <div class="cell">
+    <span class="bold">ε-greedy</span> with multiplicative decay (ε × 0.9995 each episode).
+    <div class="eq">a = argmax Q(s,·)   w.p. 1−ε
+a = random           w.p. ε</div>
+  </div>
+  <div class="cell shaded">
+    <span class="bold">ε-greedy</span> with linear schedule (1.0 → 0.05 over 30 % of training).
+    <div class="eq red">a = argmax Q_net(s)   w.p. 1−ε
+a = random             w.p. ε</div>
+  </div>
+  <div class="cell">
+    Each agent independently runs ε-greedy on its own Q-net. They never consult each other.
+    <div class="eq amber">aA = argmax QA(s)    ← frog A's net
+aB = argmax QB(s)    ← frog B's net</div>
+  </div>
+  <div class="cell shaded">
+    <span class="bold">Stochastic sampling</span> from the actor's categorical distribution. No ε needed — entropy bonus keeps exploration alive.
+    <div class="eq teal">aA ~ Categorical(πA(s))
+aB ~ Categorical(πB(s))</div>
+  </div>
+
+  <!-- ══ ROW 4: update rule ════════════════════════════════════════════════ -->
+  <div class="cell-label">Update rule</div>
+
+  <div class="cell row-stripe">
+    Bellman update on every step. No mini-batch, no replay — one transition updates one table entry directly.
+    <div class="eq">Q(s,a) ← Q(s,a)
+  + α · [r + γ·max Q(s′,·) − Q(s,a)]</div>
+    <span class="dim">α = 0.1, γ = 0.99</span>
+  </div>
+  <div class="cell shaded row-stripe">
+    Sample a random mini-batch from replay. Compute TD target using frozen target net. MSE loss, Adam optimiser.
+    <div class="eq red">target = r + γ · max Q_tgt(s′,·) · (1−done)
+loss   = MSE(Q_net(s,a),  target)
+Q_tgt  ← Q_net  every 1 000 steps</div>
+    <span class="dim">batch=128, lr=1e-3, train every 4 steps</span>
+  </div>
+  <div class="cell row-stripe">
+    Same as DQN but run twice — once per agent — each on its own replay buffer and its own reward signal.
+    <div class="eq amber">lossA = MSE(QA(s, aA),  rA + γ·max QA_tgt(s′))
+lossB = MSE(QB(s, aB),  rB + γ·max QB_tgt(s′))</div>
+    <span class="dim">rA and rB are individual rewards, not shared</span>
+  </div>
+  <div class="cell shaded row-stripe">
+    Collect rollout → GAE advantages → 4 PPO epochs with clipped surrogate objective. One optimiser for all parameters.
+    <div class="eq teal">δt  = r_team + γ·V(s′) − V(s)
+A_t = δt + (γλ)δt+1 + (γλ)²δt+2 + …
+
+L_actor = −min(ratio·A, clip(ratio,1±ε)·A)
+L_critic = MSE(V(s), returns)
+L_entropy = H[πA] + H[πB]
+
+loss = L_actor + 0.5·L_critic − 0.01·L_entropy</div>
+    <span class="dim">clip ε=0.2, λ=0.95, 4 epochs, batch=512</span>
+  </div>
+
+  <!-- ══ ROW 5: reward ═════════════════════════════════════════════════════ -->
+  <div class="cell-label">Reward signal</div>
+
+  <div class="cell">
+    Individual frog reward: <span class="bold">+100</span> reach top, <span class="bold">−100</span> hit, <span class="bold">−1</span> per step, <span class="bold">+1</span> per row gained upward.
+  </div>
+  <div class="cell shaded">
+    Same individual reward as Q-Learning. Single agent, so there is no ambiguity.
+  </div>
+  <div class="cell">
+    Each agent trains on <span class="bold">its own reward only</span> (rA or rB). Neither agent sees or optimises for the other's outcome.
+    <div class="dim" style="margin-top:6px">This is the "independent" in IDQN — the source of instability.</div>
+  </div>
+  <div class="cell shaded">
+    <span class="bold">Team reward: rA + rB</span>, shared equally. Both actors receive the same scalar and learn to maximise the joint outcome.
+    <div class="dim" style="margin-top:6px">This is what drives cooperative behaviour — not explicit messaging.</div>
+  </div>
+
+  <!-- ══ ROW 6: key mechanism ══════════════════════════════════════════════ -->
+  <div class="cell-label">Key mechanism</div>
+
+  <div class="cell row-stripe">
+    <span class="bold">Lookup table + Bellman.</span> Every (state, action) pair gets its own learned value. Exact — no generalisation. The table is the policy.
+  </div>
+  <div class="cell shaded row-stripe">
+    <span class="bold">Experience replay + target network.</span> Replay breaks temporal correlation; the target net provides a stable regression target that doesn't chase itself.
+  </div>
+  <div class="cell row-stripe">
+    <span class="bold">Non-stationarity.</span> From each agent's perspective the environment changes as the other agent learns — making convergence unreliable. The +34 pp gap vs MAPPO is the cost of this instability.
+  </div>
+  <div class="cell shaded row-stripe">
+    <span class="bold">Centralised Training, Decentralised Execution (CTDE).</span> The critic sees global state during training and teaches actors how joint actions affect joint returns. At test time, each actor acts alone using only its own obs.
+  </div>
+
+  <!-- ══ ROW 7: generalisation ═════════════════════════════════════════════ -->
+  <div class="cell-label">Generalises to unseen states?</div>
+
+  <div class="cell">
+    <span class="bold">No.</span> New state → no table entry → falls back to random. Must visit every state to learn about it.
+  </div>
+  <div class="cell shaded">
+    <span class="bold">Yes.</span> The network interpolates across similar observations. Trained on 4 cars, still works on 1–6 cars at eval.
+  </div>
+  <div class="cell">
+    <span class="bold">Yes</span>, same as DQN — but generalisation is disrupted if the other agent's behaviour is still shifting.
+  </div>
+  <div class="cell shaded">
+    <span class="bold">Yes.</span> Trained on 4 cars, evaluated on 1–6. Actors generalise cleanly because the critic's value signal is stable.
+  </div>
+
+  <!-- ══ ROW 8: convergence ════════════════════════════════════════════════ -->
+  <div class="cell-label">Convergence</div>
+
+  <div class="cell row-stripe">
+    <span class="bold">Guaranteed</span> under standard conditions (visiting all states, α schedule). Converges to optimal Q* for small state spaces.
+  </div>
+  <div class="cell shaded row-stripe">
+    <span class="bold">No guarantee</span> (function approximation + off-policy = deadly triad). In practice stable enough with replay + target net.
+  </div>
+  <div class="cell row-stripe">
+    <span class="bold">No guarantee.</span> Non-stationarity breaks the theoretical requirements. Observed: 7× spread across 4 seeds (10 % to 79 %).
+  </div>
+  <div class="cell shaded row-stripe">
+    <span class="bold">No guarantee</span> for global optimum, but PPO's clipping keeps updates small. Observed: all 4 seeds converged to identical policies — far more stable than IDQN.
+  </div>
+
+</div>
+</body>
+</html>
