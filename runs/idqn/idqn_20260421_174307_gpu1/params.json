@@ -1,0 +1,33 @@
+{
+  "run_id": "idqn_20260421_174307_gpu1",
+  "timestamp": "2026-04-21T17:43:07.894382",
+  "algorithm": "Independent DQN",
+  "stage": 4,
+  "total_timesteps": 200000,
+  "train_cars": 2,
+  "car_speeds": [
+    1
+  ],
+  "seed": 101,
+  "device": "cuda",
+  "gpu_id": 1,
+  "grid_size": 8,
+  "num_agents": 2,
+  "policy": "MlpPolicy (flattened obs, independent per agent)",
+  "eval_car_counts": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "eval_episodes": 200,
+  "key_episodes": [
+    1,
+    500,
+    1000
+  ],
+  "train_time_sec": 429.1,
+  "episodes_recorded": 1542
+}

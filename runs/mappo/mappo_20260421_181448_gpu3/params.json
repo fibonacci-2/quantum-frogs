@@ -1,0 +1,35 @@
+{
+  "run_id": "mappo_20260421_181448_gpu3",
+  "timestamp": "2026-04-21T18:14:48.084277",
+  "algorithm": "MAPPO (centralised critic, decentralised actors)",
+  "stage": 5,
+  "total_timesteps": 300000,
+  "n_envs": 32,
+  "train_cars": 4,
+  "car_speeds": [
+    1,
+    2
+  ],
+  "seed": 203,
+  "device": "cuda",
+  "gpu_id": 3,
+  "grid_size": 8,
+  "num_agents": 2,
+  "policy": "Actor-Critic (CTDE: centralised V, decentralised \u03c0)",
+  "eval_car_counts": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "eval_episodes": 200,
+  "key_episodes": [
+    1,
+    500,
+    1000
+  ],
+  "train_time_sec": 53.8,
+  "episodes_recorded": 44119
+}

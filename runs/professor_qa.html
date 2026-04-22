@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quantum Frog — Professor Q&A</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    padding: 44px 36px 80px;
+    max-width: 1160px;
+    margin: 0 auto;
+  }
+
+  h1 { font-size: 1.65rem; font-weight: 800; letter-spacing: -.4px; margin-bottom: 4px; }
+  h1 span { color: #4361ee; }
+  .subtitle { color: #666; font-size: 0.88rem; margin-bottom: 32px; }
+
+  /* Section headers */
+  .section {
+    font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .1em; color: white;
+    padding: 8px 18px;
+    border-radius: 8px 8px 0 0;
+    margin-top: 32px;
+    display: inline-block;
+  }
+
+  /* Table */
+  table {
+    width: 100%; border-collapse: collapse;
+    border-radius: 0 12px 12px 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,.09);
+    margin-bottom: 4px;
+  }
+
+  thead th {
+    padding: 11px 20px;
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: white; text-align: left;
+  }
+  thead th:first-child { width: 36%; }
+
+  tr { border-bottom: 1px solid #eef0f4; }
+  tr:last-child { border-bottom: none; }
+  tr:nth-child(even) td { background: #f7f8fb; }
+  tr:nth-child(odd)  td { background: white; }
+
+  td {
+    padding: 14px 20px;
+    font-size: 0.84rem;
+    line-height: 1.6;
+    vertical-align: top;
+  }
+
+  .q {
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+  .q::before {
+    content: 'Q  ';
+    font-weight: 800;
+    font-size: 0.7rem;
+    letter-spacing: .05em;
+    opacity: .35;
+    margin-right: 2px;
+  }
+
+  .a { color: #2d3550; }
+
+  code {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.78rem;
+    background: #eef1f8;
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: #2a3f8f;
+  }
+
+  .dim { color: #888; font-size: 0.78rem; }
+
+  /* section color themes */
+  .env    { background: #1d4ed8; }
+  .ql     { background: #0e7490; }
+  .dqn    { background: #be123c; }
+  .marl   { background: #c05621; }
+  .mappo  { background: #065f46; }
+  .qmix   { background: #4c1d95; }
+  .res    { background: #1a1a2e; }
+  .lim    { background: #374151; }
+
+  .env    thead { background: #1d4ed8; }
+  .ql-t   thead { background: #0e7490; }
+  .dqn-t  thead { background: #be123c; }
+  .marl-t thead { background: #c05621; }
+  .mappo-t thead { background: #065f46; }
+  .qmix-t thead { background: #4c1d95; }
+  .res-t  thead { background: #1a1a2e; }
+  .lim-t  thead { background: #374151; }
+
+  /* number badge */
+  .num {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    font-size: 0.68rem; font-weight: 800;
+    text-align: center; line-height: 20px;
+    margin-right: 7px;
+    flex-shrink: 0;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<h1>🐸 Quantum Frog — <span>Anticipated Professor Questions</span></h1>
+<p class="subtitle">Technical and design questions likely in a class presentation · Two-column reference</p>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section env">Environment & Game Design</div>
+<table>
+  <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+  <tbody>
+
+  <tr><td class="q">Why quantized time — what does it change about the RL problem?</td>
+  <td class="a">In standard Frogger time runs continuously regardless of the player's actions. Here, the environment only advances one tick when the frog acts. This removes real-time pressure and turns the game into a fully observable, deterministic planning problem — each state is perfectly known and cars move exactly when you tell them to. For RL this means the agent's action directly causes every state transition it faces, which clarifies credit assignment. The tradeoff is that the optimal strategy becomes "rush straight up," because hesitating gives cars extra turns to reach you.</td></tr>
+
+  <tr><td class="q">Why represent the state as three 8×8 channels rather than a flat vector?</td>
+  <td class="a">The three-channel layout preserves <em>spatial structure</em>: channel 0 encodes frog positions, channel 1 car presence, channel 2 car velocities (signed integer). This is compatible with both flattening for an MLP and passing raw to a CNN. It also makes the state human-readable and easy to debug — you can print the grid and immediately see what the agent sees. A flat encoding of the same information would work functionally but would lose the 2D locality signal a convolutional net could exploit.</td></tr>
+
+  <tr><td class="q">How did you design the reward function, and what tradeoffs did you consider?</td>
+  <td class="a">Three components: <code>+100</code> reaching the top, <code>−100</code> collision, <code>−1</code> per step (efficiency), and <code>+1</code> per row gained upward (progress shaping). The step penalty discourages wandering. The progress shaping gives a dense gradient early in training so the agent isn't exploring blind until it randomly reaches the top. The tradeoff: too large a shaping bonus could cause the agent to move up and back repeatedly to farm progress rewards. We kept it small (<code>+1</code> vs <code>+100</code> terminal) to avoid this.</td></tr>
+
+  <tr><td class="q">Why is the done condition "both frogs reach the top" rather than "either frog"?</td>
+  <td class="a">The game is cooperative by design — both players need to succeed together. Terminating when one frog wins would let agents learn selfish single-frog policies and never discover joint strategies. Requiring both to reach the top means the reward signal forces agents to care about the pair's outcome, not just their own. This is the mechanism that makes Stage 5 (MAPPO with team reward) learn coordinated behaviour.</td></tr>
+
+  </tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section ql">Tabular Q-Learning</div>
+<table class="ql-t">
+  <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+  <tbody>
+
+  <tr><td class="q">State the Bellman equation used here and explain each term.</td>
+  <td class="a"><code>Q(s,a) ← Q(s,a) + α[r + γ·max_a' Q(s',a') − Q(s,a)]</code>. The bracketed term is the TD error: <em>r</em> is the immediate reward, <em>γ·max Q(s',·)</em> is the discounted best future value from the next state (the "bootstrap" target), and <em>Q(s,a)</em> is the current estimate. <em>α</em> controls how fast we move toward the target. Subtracting the current estimate makes this an incremental update — we only move partway toward the new information each step, which stabilises learning.</td></tr>
+
+  <tr><td class="q">Why does tabular Q-Learning fail to scale beyond Stage 2?</td>
+  <td class="a">The table stores one entry per (state, action) pair. Stage 1–2 has a small, discrete state space that fits in a dictionary. Stage 3 introduces 4 cars with mixed speeds — the number of distinct (frog position × car positions × car velocities) combinations is astronomical, most never visited during training. An unvisited state gets random Q-values. A neural network generalises across structurally similar states; a table cannot.</td></tr>
+
+  </tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section dqn" style="background:#be123c">DQN — Deep Q-Network</div>
+<table class="dqn-t">
+  <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+  <tbody>
+
+  <tr><td class="q">What problem does the replay buffer solve, and what would happen without it?</td>
+  <td class="a">In online RL, consecutive transitions are highly correlated — the frog takes ten UP steps in a row, producing nearly identical observations. Training a neural net on a correlated stream causes it to overfit to recent experience and catastrophically forget earlier patterns. The replay buffer stores 100 k transitions and samples random mini-batches, breaking temporal correlation and giving each gradient update a diverse, independent mini-dataset. Without it, the Q-network would oscillate or diverge.</td></tr>
+
+  <tr><td class="q">What problem does the target network solve?</td>
+  <td class="a">The TD target is <code>r + γ·max Q(s',·)</code>. If the same network provides both the prediction and the target, updating the weights shifts the target simultaneously — the network chases a moving goal. This is called bootstrapping instability. The target network is a frozen copy updated every 1 000 steps. It provides a stable regression target for a period, letting the online network converge toward a fixed objective before the target itself moves.</td></tr>
+
+  <tr><td class="q">Why is DQN called off-policy, and why does that matter?</td>
+  <td class="a">Off-policy means the data used for training can come from a <em>different</em> policy than the one currently being learned. DQN collects experience with an ε-greedy behavioural policy, stores it in the replay buffer, and trains using the greedy policy's TD target (<code>max Q</code>). This separation is what makes replay legal — we can reuse old transitions even though the current policy has changed. MAPPO (PPO) is on-policy: it must discard transitions after one update because its target depends on the policy that collected the data.</td></tr>
+
+  <tr><td class="q">Your DQN evaluated on 1–6 cars but trained on 4. How does it generalise?</td>
+  <td class="a">The MLP sees a flattened 192-dimensional observation. Configurations with fewer cars are structurally similar — the frog position channels are identical, the car channels are sparser. The network's weights encode something like "avoid occupied cells" and "move toward row 0," which holds regardless of how many cars are present. This generalisation is empirically confirmed: the network achieves 95 % win rate at 1 car and 59 % at 6, with a smooth curve — no cliff that would suggest the network sees truly unfamiliar structure.</td></tr>
+
+  </tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section marl" style="background:#c05621">Multi-Agent & IDQN</div>
+<table class="marl-t">
+  <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+  <tbody>
+
+  <tr><td class="q">What is the non-stationarity problem in multi-agent RL?</td>
+  <td class="a">Single-agent RL theory assumes the environment is a stationary Markov Decision Process — the transition dynamics don't change during training. When two agents learn simultaneously, each agent's policy is part of the other's environment. As agent B updates its policy, the effective environment seen by agent A changes, violating the stationarity assumption. The Q-values agent A learned last week may be wrong today because B now behaves differently. This is why IDQN has no convergence guarantee in multi-agent settings.</td></tr>
+
+  <tr><td class="q">Why did IDQN show a 7× spread across seeds (10 % to 79 %) while MAPPO had zero variance?</td>
+  <td class="a">In IDQN, both agents learn simultaneously under non-stationary conditions. Small random differences in early exploration cause one agent to learn slightly faster. That agent's evolving policy shifts the environment for the other, creating a compounding feedback loop — one agent's success destabilises the other's learning signal. The outcome depends heavily on which agent "wins" this early race, producing seed-dependent results. MAPPO's centralised critic sees the joint state and produces a consistent value signal for both actors regardless of which one is "ahead," breaking the feedback loop.</td></tr>
+
+  <tr><td class="q">In IDQN, Frog B consistently outperformed Frog A. Is this a starting position advantage?</td>
+  <td class="a">No — MAPPO showed both frogs at exactly 75 %, ruling out a structural advantage. It is a training artifact of the non-stationary multi-agent setting: whichever agent begins converging first shapes the environment for the other. If B's replay buffer happened to collect better early samples (due to random seed), B converges first, its policy stabilises, and A trains in a more stable environment after the fact — but A's Q-values were already learned under B's noisy early behaviour. MAPPO's shared critic and team reward prevent this asymmetry.</td></tr>
+
+  </tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section mappo" style="background:#065f46">MAPPO</div>
+<table class="mappo-t">
+  <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+  <tbody>
+
+  <tr><td class="q">Explain CTDE — centralised training, decentralised execution. Why does it matter?</td>
+  <td class="a">During training, the critic receives the full global state (both frog positions, all car positions and velocities) and learns V(s) — how good the joint situation is. This global information resolves ambiguities that individual observations can't: an agent might not know whether its partner is safe. But at execution time, each actor only uses its own local observation to select actions — this is the "decentralised" part, which is realistic (real players don't share complete mental models in real time). CTDE thus gets the best of both worlds: rich training signal, realistic execution.</td></tr>
+
+  <tr><td class="q">What is GAE (Generalised Advantage Estimation) and why not use plain TD error?</td>
+  <td class="a">The advantage <em>A(s,a)</em> measures how much better action <em>a</em> is than the average. Plain TD error (<code>r + γV(s') − V(s)</code>) uses a one-step lookahead — low variance but high bias if V is inaccurate. Monte Carlo returns average over the full episode — low bias but high variance. GAE interpolates: <code>A_t = δ_t + (γλ)δ_{t+1} + (γλ)²δ_{t+2} + …</code>, where λ ∈ [0,1] controls the tradeoff. We used λ=0.95 — mostly Monte Carlo-like, keeping bias low while damping variance enough for stable updates.</td></tr>
+
+  <tr><td class="q">What does the PPO clipping term do, and what failure mode does it prevent?</td>
+  <td class="a">The clipped objective is <code>min(ratio·A, clip(ratio, 1−ε, 1+ε)·A)</code> where ratio = π_new/π_old. Without clipping, a large advantage could cause a very large policy update that destroys a working policy — the classic "too large a step" problem in policy gradient. The clip caps how much the policy can change in one update (we used ε=0.2, so the ratio is constrained to [0.8, 1.2]). This keeps updates conservative and makes PPO far more stable than vanilla policy gradient.</td></tr>
+
+  <tr><td class="q">How does a shared team reward produce cooperative behaviour without explicit agent communication?</td>
+  <td class="a">When both actors receive <code>r_team = r_A + r_B</code>, agent A's policy gradient includes the consequences of B's outcome. If A takes an action that causes B to get hit, A's return suffers. Over many updates, A learns to avoid actions that harm B — not because it reasons about B, but because those actions consistently produce lower returns. The centralised critic accelerates this by estimating V(global state), which encodes how B's current position affects the joint future value. Communication emerges from shared incentives, not messaging.</td></tr>
+
+  <tr><td class="q">MAPPO is on-policy — doesn't that make it less sample-efficient than DQN?</td>
+  <td class="a">Yes, in principle. On-policy methods discard every rollout after one update, while DQN's replay buffer reuses transitions many times. In practice we used 32 parallel environments, collecting 4 096 transitions per update — enough data to make each PPO update meaningful. The tradeoff is worth it here: on-policy data is statistically consistent with the current policy, which stabilises the advantage estimates. QMIX (off-policy CTDE) would recover sample efficiency while keeping cooperation, which is why it is listed as an alternative for Stage 6.</td></tr>
+
+  </tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section qmix" style="background:#4c1d95">QMIX</div>
+<table class="qmix-t">
+  <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+  <tbody>
+
+  <tr><td class="q">What is the IGM principle and why is it the central result behind QMIX?</td>
+  <td class="a">IGM stands for Individual-Global-Max. It states: <code>argmax_a Q_tot(s,a) = (argmax_{a_A} Q_A(s,a_A), argmax_{a_B} Q_B(s,a_B))</code>. In plain English: the joint-optimal action equals each agent acting greedily on its own Q-value. This is what makes decentralised execution valid — agents don't need to solve a joint optimisation at runtime. QMIX enforces IGM by constraining the mixing network to be monotone in each Q_i, so improving any agent's local Q always improves Q_tot.</td></tr>
+
+  <tr><td class="q">How does the mixing network enforce monotonicity in practice?</td>
+  <td class="a">The mixing network takes Q_A and Q_B as inputs and outputs Q_tot. Its weights are produced by a <em>hypernetwork</em> conditioned on the global state. To guarantee <code>∂Q_tot/∂Q_i ≥ 0</code>, all weights entering the mixing layer pass through an absolute-value activation — this ensures they are non-negative, so Q_tot is a non-decreasing function of each Q_i. The biases can be any sign (allowing flexible intercepts). This is a soft structural constraint built into the architecture, not enforced via a penalty term.</td></tr>
+
+  <tr><td class="q">When would you choose QMIX over MAPPO for this project?</td>
+  <td class="a">QMIX is preferred when sample efficiency matters — it reuses experience via replay, so it learns from fewer environment interactions. This would matter at Stage 6 (6+ cars, dense traffic) where episodes are short and failure is frequent, making on-policy data costly to collect. MAPPO is preferred when stability matters more than efficiency — its clipped policy gradient and GAE advantages produce very stable convergence, as we observed (zero seed variance). For a research project with unlimited compute, MAPPO's stability is often worth the sample cost. For a resource-constrained deployment, QMIX is the better choice.</td></tr>
+
+  </tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section res" style="background:#1a1a2e">Results & Interpretation</div>
+<table class="res-t">
+  <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+  <tbody>
+
+  <tr><td class="q">Every converged algorithm found the same "rush straight up" strategy. What does that tell you?</td>
+  <td class="a">It tells us the optimal policy for this game is simple and robust — the reward structure (−1/step, quantized time) creates a strong universal incentive toward speed regardless of the algorithm used. A Q-table, a DQN, and a MAPPO actor all discovered it independently. This is actually a meaningful result about the <em>game design</em>: the quantized-time mechanic is the dominant force shaping optimal play, not the traffic pattern or the number of frogs. Any sufficiently capable agent will find this strategy.</td></tr>
+
+  <tr><td class="q">The cooperation gap peaks at 2 cars (+34 pp). Why not at 1 car, where the game is easiest?</td>
+  <td class="a">At 1 car the game is easy enough that even uncoordinated IDQN agents occasionally win by chance — the 43 % baseline is non-trivial. At 2 cars the task becomes hard enough that uncoordinated agents fail far more often (24 %), but MAPPO's coordinated rush still succeeds frequently (58 %). The gap is widest where the task is hard enough to punish bad coordination but not so hard that even good coordination fails. Beyond 4 cars both methods struggle, and the absolute gap shrinks as win rates converge toward zero.</td></tr>
+
+  <tr><td class="q">MAPPO's average episode length is 3–6 steps. What does this tell you about the policy?</td>
+  <td class="a">The minimum possible episode length for an 8-row grid is 7 steps (UP seven times from row 7 to row 0). Averaging 6 steps means agents are essentially playing optimally — they go straight up every step. The fact that the average is <em>below</em> 7 reflects episodes that terminate early due to collision (shorter than a successful run). This confirms the policy is "rush" — not a nuanced avoidance strategy, but the simplest possible coordinated behaviour that the team reward and centralised critic converged to.</td></tr>
+
+  <tr><td class="q">How do you know the agents actually learned something and didn't just get lucky?</td>
+  <td class="a">Three checks: (1) The action distribution L1 distance from random is consistently above 1.0 (maximum is 2.0), confirming the policy is not uniform random. (2) The win-rate curve is monotonically decreasing with car count — a random policy would show no such structure. (3) Episode length at evaluation drops to 3–7 steps, far shorter than random episodes (which would average ~200 steps before timeout). All three confirm structured, learned behaviour.</td></tr>
+
+  </tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section lim" style="background:#374151">Limitations & Extensions</div>
+<table class="lim-t">
+  <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+  <tbody>
+
+  <tr><td class="q">What assumptions does your environment make that a real multiplayer game wouldn't?</td>
+  <td class="a">Three main ones: (1) <em>Full observability</em> — both agents see the entire grid including each other's position, all cars, and all velocities. Real players have limited attention and imperfect information. (2) <em>Synchronous turns</em> — both frogs act simultaneously every step. Real co-op games often have asynchronous actions. (3) <em>Deterministic cars</em> — once you know a car's velocity, its future positions are perfectly predictable. Adding stochastic car behaviour or hidden velocities would require partial observability extensions.</td></tr>
+
+  <tr><td class="q">Why didn't you implement QMIX, given it's in the project plan?</td>
+  <td class="a">Time and scope: MAPPO successfully demonstrated cooperative behaviour with strong results and all 4 seeds converging identically. QMIX would add a hypernetwork architecture and off-policy multi-agent replay, which is substantial engineering for marginal gain on this environment — especially since the "rush" strategy is already optimal and fully captured by MAPPO. QMIX becomes more valuable at Stage 6 (6+ cars) where MAPPO's sample cost is high. It remains a natural next step.</td></tr>
+
+  <tr><td class="q">What would change if you introduced partial observability — each frog only sees a 3×3 window?</td>
+  <td class="a">Agents could no longer see incoming cars until they are adjacent, requiring anticipation and lookahead that the current policy doesn't need. The "rush" strategy would become riskier — agents would need to occasionally pause or dodge. This would also break the centralised critic's assumption (it currently sees the full grid), requiring either a recurrent critic (using LSTM over observation history) or an explicit communication channel between agents. QMIX with a recurrent agent network (like QMIX+GRU) is the standard architecture for partial observability in cooperative MARL.</td></tr>
+
+  <tr><td class="q">How would you scale this to Stage 6 — six or more cars, mixed speeds?</td>
+  <td class="a">Three changes: (1) Switch from MAPPO to QMIX for better sample efficiency — Stage 6 episodes are short and failures frequent, making on-policy data expensive. (2) Increase network capacity — the current 256×256 MLP may not represent complex multi-car interactions; a small CNN over the 3×8×8 state would capture spatial patterns better. (3) Curriculum learning — train on 4 cars, then fine-tune on 6+, rather than training from scratch. The difficulty curve we measured (−10 pp per car) suggests 6+ cars will be genuinely hard even for MAPPO, so a staged approach is prudent.</td></tr>
+
+  </tbody>
+</table>
+
+</body>
+</html>

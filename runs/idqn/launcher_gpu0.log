@@ -1,0 +1,19 @@
+=== Run: idqn_20260421_174307_gpu0 ===
+Output: runs/idqn/idqn_20260421_174307_gpu0/
+
+Training Independent DQN (2 agents)...
+
+Evaluating across car counts...
+  cars=1: both=29.5%  A=55.0%  B=71.0%  avg_steps=122.3
+  cars=2: both=17.0%  A=36.5%  B=60.0%  avg_steps=101.9
+  cars=3: both=12.5%  A=24.5%  B=41.0%  avg_steps=55.7
+  cars=4: both=8.5%  A=19.0%  B=34.5%  avg_steps=46.6
+  cars=5: both=5.0%  A=14.0%  B=22.5%  avg_steps=29.1
+  cars=6: both=6.5%  A=10.0%  B=21.0%  avg_steps=21.8
+
+Collecting action-distribution evidence...
+
+Generating report...
+Report saved: runs/idqn/idqn_20260421_174307_gpu0/report.html
+
+Done in 425s. Files in runs/idqn/idqn_20260421_174307_gpu0/

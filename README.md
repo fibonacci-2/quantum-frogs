@@ -7,6 +7,15 @@ next action. Game is by design a 2 player game both working together
 to cross to the other end. One player's action affect the other, in this 
 way. So they have to communicate.
 
+Playing the game is not an end by itself. Rather we’re interested in answering big questions about the newly designed game.
+How does the game difficulty scale with # of cars?
+How can multi agents play the game? 
+Is it better to collaborate or compete?
+How to come up with the best reward model?
+In the commercial version of the game, what would motivate players the best. 
+Reward per square advanced, final reward, simultaneous movement.
+
+
 ## Agents
 * cars walking side ways right to left and left to right with certain speed (
 squares per second)
