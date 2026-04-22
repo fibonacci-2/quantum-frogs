@@ -18,6 +18,7 @@
 \usepackage{enumitem}
 \usepackage{float}
 \usepackage{url}
+\usepackage{fancyvrb}   % font-size control in verbatim (ASCII figures)
 
 \hypersetup{
   colorlinks=true,
@@ -114,6 +115,97 @@ continuous-time variants (such as the original Frogger~\citep{konami1981})
 in a fundamental way—players can deliberate without penalty and car positions
 are perfectly predictable.  The game is cooperative: both frogs must survive
 and reach the far side, requiring players to communicate and act jointly.
+Figure~\ref{fig:game} illustrates the board layout and one complete time step.
+
+% ── Game figure ───────────────────────────────────────────────────────────────
+\begin{figure}[t]
+\centering
+%
+% ── left panel: t=0 ──────────────────────────────────────────────────────────
+\begin{minipage}[t]{0.43\textwidth}
+\centering
+{\small\textbf{$t=0$\;—\;time is frozen, frogs decide}}\\[6pt]
+\begin{BVerbatim}[fontsize=\footnotesize,commandchars=\\\{\}]
+    col  0 1 2 3 4 5 6 7
+        +-+-+-+-+-+-+-+-+
+row 0   |#|#|#|#|#|#|#|#|  GOAL
+        +-+-+-+-+-+-+-+-+
+row 1   |.|.|>|.|.|.|.|.|
+        +-+-+-+-+-+-+-+-+
+row 2   |.|.|.|.|.|<|.|.|
+        +-+-+-+-+-+-+-+-+
+row 3   |.|>|.|.|.|.|.|.|  \textrm{cars}
+        +-+-+-+-+-+-+-+-+  \textrm{frozen}
+row 4   |.|.|.|.|.|.|<|.|
+        +-+-+-+-+-+-+-+-+
+row 5   |.|.|.|<|.|.|.|.|
+        +-+-+-+-+-+-+-+-+
+row 6   |.|.|.|.|.|.|.|.|
+        +-+-+-+-+-+-+-+-+
+row 7   |.|.|.|A|.|B|.|.|  START
+        +-+-+-+-+-+-+-+-+
+\end{BVerbatim}
+\end{minipage}
+%
+% ── arrow ─────────────────────────────────────────────────────────────────────
+\hspace{0.5em}
+\raisebox{3.8cm}{%
+  \begin{minipage}[c]{0.08\textwidth}
+  \centering
+  $\Rightarrow$\\[4pt]
+  {\scriptsize A,B each\\move \textsc{up}}
+  \end{minipage}%
+}
+\hspace{0.5em}
+%
+% ── right panel: t=1 ─────────────────────────────────────────────────────────
+\begin{minipage}[t]{0.43\textwidth}
+\centering
+{\small\textbf{$t=1$\;—\;frogs advanced, cars ticked}}\\[6pt]
+\begin{BVerbatim}[fontsize=\footnotesize,commandchars=\\\{\}]
+    col  0 1 2 3 4 5 6 7
+        +-+-+-+-+-+-+-+-+
+row 0   |#|#|#|#|#|#|#|#|  GOAL
+        +-+-+-+-+-+-+-+-+
+row 1   |.|.|.|>|.|.|.|.|
+        +-+-+-+-+-+-+-+-+
+row 2   |.|.|.|.|<|.|.|.|
+        +-+-+-+-+-+-+-+-+
+row 3   |.|.|>|.|.|.|.|.|  \textrm{cars}
+        +-+-+-+-+-+-+-+-+  \textrm{advanced}
+row 4   |.|.|.|.|.|<|.|.|  \textrm{one tick}
+        +-+-+-+-+-+-+-+-+
+row 5   |.|.|<|.|.|.|.|.|
+        +-+-+-+-+-+-+-+-+
+row 6   |.|.|.|A|.|B|.|.|  \textrm{\textbf{frogs up!}}
+        +-+-+-+-+-+-+-+-+
+row 7   |.|.|.|.|.|.|.|.|
+        +-+-+-+-+-+-+-+-+
+\end{BVerbatim}
+\end{minipage}
+
+\vspace{8pt}
+{\small
+  \texttt{>}\,/\,\texttt{<}\;=\;car moving right/left\quad
+  \texttt{A}\,/\,\texttt{B}\;=\;frog agents\quad
+  \texttt{\#}\;=\;goal row\quad
+  \texttt{.}\;=\;empty cell
+}
+\caption{%
+  One step of Quantum Frog on an 8$\times$8 grid.
+  \textbf{Left ($t=0$):} Both frogs (A, B) begin at the bottom row (row~7);
+  five cars occupy rows~1--5 and move horizontally at speed~1.
+  The entire board is frozen while the players choose their actions.
+  \textbf{Right ($t=1$):} Both frogs select \textsc{up}; the environment
+  advances exactly one simulation tick—frogs move to row~6 and every car
+  shifts one cell in its direction.
+  The key property of quantized time is visible here: \emph{cars move only
+  because the frogs acted}.  A player who deliberates longer gains no
+  additional car movements, making car trajectories perfectly predictable.%
+}
+\label{fig:game}
+\end{figure}
+% ── end game figure ───────────────────────────────────────────────────────────
 
 \paragraph{Motivation.}
 The quantized-time mechanic is understudied in game design research.  It
